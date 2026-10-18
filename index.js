@@ -27,10 +27,46 @@ app.command("/slackhack-help", async ({ ack, respond }) => {
         text: `Available commands:\n
         /slackhack-hello - Greets the user.\n
         /slackhack-ping - Checks the bot's latency.\n
-        /slackhack-help - Display help list
-        /slackhack-joke - Tells a joke`
+        /slackhack-help - Display help list.\n
+        /slackhack-weather - Tells the weather.\n
+        /slackhack-joke - Tells a joke.`
     });
 });
+
+app.command("/slackhack-weather", async ({ command, ack, respond }) => {
+    await ack();
+    const city = command.text.trim();
+
+    if (!city){
+        await respond({ text: "Please provide a city name." });
+        return;
+    }
+
+    try {
+        const location = await axios.get("https://geocoding-api.open-meteo.com/v1/search",
+            {
+                params: {
+                    name: city,
+                    count: 1,
+                    language: "en",
+                    format: "json"
+                }
+            }
+        );
+
+        const targetCity = location.data.results[0];
+
+        const weather = await axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${targetCity.latitude}&longitude=${targetCity.longitude}&current=temperature_2m,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m`);
+        await respond({
+            text: `Weather in ${targetCity.name}, ${targetCity.country}:\n
+            Temperature: ${weather.data.current.temperature_2m} C`
+        });
+        
+    } catch (err) {
+        await respond({ text: "Failed to fetch weather information." });
+    }
+}); 
+
 
 app.command("/slackhack-joke", async ({ ack, respond }) => {
   await ack();
@@ -47,7 +83,6 @@ ${response.data.punchline}`
     await respond({ text: "Failed to fetch a joke." });
   }
 });
-
 
 (async () => {
   await app.start();
