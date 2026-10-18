@@ -29,6 +29,7 @@ app.command("/slackhack-help", async ({ ack, respond }) => {
         /slackhack-ping - Checks the bot's latency.\n
         /slackhack-help - Display help list.\n
         /slackhack-weather - Tells the weather.\n
+        /slackhack-quote - Tells a quote.\n
         /slackhack-joke - Tells a joke.`
     });
 });
@@ -67,6 +68,18 @@ app.command("/slackhack-weather", async ({ command, ack, respond }) => {
     }
 }); 
 
+app.command("/slackhack-quote", async ({ ack, respond }) => {
+    await ack();
+
+    try {
+        const response = await axios.get("https://zenquotes.io/api/random");
+        await respond({
+            text: `${response.data[0].q} - ${response.data[0].a}`
+        });
+    } catch (err) {
+        await respond({ text: "Failed to fetch a quote." });
+    }
+});
 
 app.command("/slackhack-joke", async ({ ack, respond }) => {
   await ack();
